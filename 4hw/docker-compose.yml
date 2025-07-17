@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: leetcode_clone
+      POSTGRES_USER: leetcode
+      POSTGRES_PASSWORD: leetcode
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://leetcode:leetcode@db:5432/leetcode_clone
+      JWT_SECRET: your_jwt_secret
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    command: npm start
+
+volumes:
+  pgdata: 
