@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useProblemStore } from '../stores/problemStore'
 
 const router = useRouter()
+const problemStore = useProblemStore()
 
+// Для обратной совместимости с компонентами, которые все еще передают пропсы
 const props = defineProps<{
-  problems: Array<{
+  problems?: Array<{
     id: number
     title: string
     difficulty: string
     category: string
     popularity: number
   }>
-  filters: {
+  filters?: {
     difficulty: string
     category: string
     sortBy: string
@@ -21,24 +24,30 @@ const props = defineProps<{
 
 // Фильтрация и сортировка задач
 const filteredProblems = computed(() => {
-  let result = [...props.problems]
-  
-  // Фильтрация по сложности
-  if (props.filters.difficulty) {
-    result = result.filter(problem => problem.difficulty === props.filters.difficulty)
+  // Если переданы пропсы, используем их для обратной совместимости
+  if (props.problems && props.filters) {
+    let result = [...props.problems]
+    
+    // Фильтрация по сложности
+    if (props.filters.difficulty) {
+      result = result.filter(problem => problem.difficulty === props.filters.difficulty)
+    }
+    
+    // Фильтрация по категории
+    if (props.filters.category) {
+      result = result.filter(problem => problem.category === props.filters.category)
+    }
+    
+    // Сортировка
+    if (props.filters.sortBy === 'popularity') {
+      result.sort((a, b) => b.popularity - a.popularity)
+    }
+    
+    return result
   }
   
-  // Фильтрация по категории
-  if (props.filters.category) {
-    result = result.filter(problem => problem.category === props.filters.category)
-  }
-  
-  // Сортировка
-  if (props.filters.sortBy === 'popularity') {
-    result.sort((a, b) => b.popularity - a.popularity)
-  }
-  
-  return result
+  // Иначе используем хранилище
+  return problemStore.filteredProblems
 })
 
 // Переход на страницу задачи

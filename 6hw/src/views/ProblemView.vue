@@ -1,81 +1,119 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import ProblemDescription from '../components/ProblemDescription.vue'
 import CodeEditor from '../components/CodeEditor.vue'
 import CommentSection from '../components/CommentSection.vue'
+import { useProblemStore } from '../stores/problemStore'
+import { useCommentStore } from '../stores/commentStore'
+import { useUserStore } from '../stores/userStore'
 
 const route = useRoute()
-const problemId = route.params.id
+const problemId = Number(route.params.id)
 
-// Временные данные для демонстрации
-const problem = ref({
-  id: Number(problemId),
-  title: 'Two Sum',
-  difficulty: 'Easy',
-  description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
-  examples: [
-    {
-      input: 'nums = [2,7,11,15], target = 9',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
-    },
-    {
-      input: 'nums = [3,2,4], target = 6',
-      output: '[1,2]',
-      explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].'
-    }
-  ],
-  constraints: [
-    '2 <= nums.length <= 10^4',
-    '-10^9 <= nums[i] <= 10^9',
-    '-10^9 <= target <= 10^9',
-    'Only one valid answer exists.'
-  ],
-  starterCode: 'function twoSum(nums, target) {\n    // Your code here\n}'
+const problemStore = useProblemStore()
+const commentStore = useCommentStore()
+const userStore = useUserStore()
+
+// Получаем задачу из хранилища
+const problem = computed(() => {
+  return problemStore.getProblemById(problemId) || {
+    id: problemId,
+    title: 'Loading...',
+    difficulty: 'Unknown',
+    category: 'Unknown',
+    popularity: 0
+  }
 })
 
-// Временные данные для комментариев
-const comments = ref([
-  { id: 1, author: 'user1', content: 'Great problem!', timestamp: '2023-01-01' },
-  { id: 2, author: 'user2', content: 'I solved it using a hash map.', timestamp: '2023-01-02' }
-])
+// Получаем комментарии для текущей задачи
+const comments = computed(() => {
+  return commentStore.getCommentsByProblemId(problemId)
+})
 
 // Обработчик отправки решения
 const handleSubmit = (code: string) => {
   console.log('Submitting solution:', code)
-  // Здесь будет логика отправки решения на сервер
+  // Имитация успешного решения задачи
+  if (userStore.isAuthenticated) {
+    userStore.addSolvedProblem({
+      id: problemId,
+      title: problem.value.title,
+      difficulty: problem.value.difficulty,
+      solvedDate: new Date().toISOString().split('T')[0]
+    })
+  }
 }
 
 // Обработчик добавления комментария
-const handleAddComment = (comment: string) => {
-  comments.value.push({
-    id: comments.value.length + 1,
-    author: 'currentUser',
-    content: comment,
-    timestamp: new Date().toISOString().split('T')[0]
+const newComment = ref('')
+
+const handleAddComment = () => {
+  if (newComment.value.trim() && userStore.isAuthenticated) {
+    commentStore.addComment({
+      problemId,
+      author: userStore.user.username,
+      content: newComment.value.trim()
+    })
+    newComment.value = ''
+  }
+}
+
+// Устаревший обработчик, оставлен для совместимости
+const handleLegacyAddComment = (comment: string) => {
+  // Используем новый метод из хранилища
+  commentStore.addComment({
+    problemId,
+    author: userStore.user.username,
+    content: comment
   })
 }
 </script>
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Левая колонка: описание задачи -->
-      <ProblemDescription :problem="problem" />
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Описание задачи -->
+      <div class="lg:col-span-1">
+        <ProblemDescription :problem="problem" />
+      </div>
       
-      <!-- Правая колонка: редактор кода -->
-      <CodeEditor 
-        :starter-code="problem.starterCode" 
-        @submit="handleSubmit" 
-      />
+      <!-- Редактор кода -->
+      <div class="lg:col-span-2">
+        <CodeEditor 
+          :starter-code="problem.starterCode || 'function solution() {\n  // Your code here\n}'" 
+          @submit="handleSubmit" 
+        />
+      </div>
     </div>
     
     <!-- Секция комментариев -->
     <div class="mt-12">
+      <h2 class="text-2xl font-bold mb-4">Комментарии</h2>
+      
+      <!-- Форма добавления комментария -->
+      <div v-if="userStore.isAuthenticated" class="mb-6">
+        <textarea 
+          v-model="newComment" 
+          class="w-full p-3 border rounded-md mb-2" 
+          placeholder="Добавьте ваш комментарий..."
+          rows="3"
+        ></textarea>
+        <button 
+          @click="handleAddComment" 
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Отправить
+        </button>
+      </div>
+      <div v-else class="mb-6 p-4 bg-gray-100 rounded-md">
+        <p>Войдите в систему, чтобы оставить комментарий</p>
+      </div>
+      
+      <!-- Список комментариев -->
       <CommentSection 
         :comments="comments" 
-        @add-comment="handleAddComment" 
+        @add-comment="handleLegacyAddComment" 
       />
     </div>
   </div>

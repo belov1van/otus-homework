@@ -1,5 +1,16 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { useUserStore } from './stores/userStore'
+
+const userStore = useUserStore()
+
+const handleLogin = () => {
+  userStore.login('JohnDoe')
+}
+
+const handleLogout = () => {
+  userStore.logout()
+}
 </script>
 
 <template>
@@ -17,7 +28,17 @@ import { RouterLink, RouterView } from 'vue-router'
             </div>
           </div>
           <div class="flex items-center space-x-4">
-            <RouterLink to="/profile" class="hover:text-blue-400 transition-colors">Profile</RouterLink>
+            <template v-if="userStore.isAuthenticated">
+              <RouterLink to="/profile" class="hover:text-blue-400 transition-colors">Профиль</RouterLink>
+              <button @click="handleLogout" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+                Выйти
+              </button>
+            </template>
+            <template v-else>
+              <button @click="handleLogin" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                Войти (демо)
+              </button>
+            </template>
           </div>
         </div>
       </div>
