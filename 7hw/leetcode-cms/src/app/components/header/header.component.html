@@ -1,1 +1,37 @@
-<p>header works!</p>
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="logo-container">
+    <a routerLink="/dashboard" class="logo-link">
+      <span class="logo">LeetCode CMS</span>
+    </a>
+  </div>
+  
+  <span class="spacer"></span>
+  
+  <ng-container *ngIf="isAuthenticated; else loginButton">
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+      <mat-icon>account_circle</mat-icon>
+      <span class="username">{{ currentUser?.username }}</span>
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+    
+    <mat-menu #userMenu="matMenu">
+      <div class="user-info-container" *ngIf="currentUser">
+        <div class="user-info">
+          <div class="user-email">{{ currentUser.email }}</div>
+          <div class="user-role">Role: {{ currentUser.role }}</div>
+        </div>
+      </div>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </ng-container>
+  
+  <ng-template #loginButton>
+    <button mat-button routerLink="/login">
+      <mat-icon>login</mat-icon>
+      <span>Login</span>
+    </button>
+  </ng-template>
+</mat-toolbar>

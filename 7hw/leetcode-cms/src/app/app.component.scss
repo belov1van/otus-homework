@@ -7,10 +7,12 @@
 .content-container {
   display: flex;
   flex: 1;
+  margin-top: 64px; /* Height of the header */
 }
 
 .main-content {
   flex: 1;
   padding: 20px;
+  margin-left: 250px; /* Width of the sidebar */
   overflow-y: auto;
 }
