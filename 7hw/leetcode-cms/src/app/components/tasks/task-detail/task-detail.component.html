@@ -1,0 +1,62 @@
+<div class="task-detail-container">
+  <div class="header">
+    <h1>Детали задачи</h1>
+    <div class="actions">
+      <button mat-raised-button color="primary" [routerLink]="['/tasks', task?.id, 'edit']" *ngIf="task">
+        <mat-icon>edit</mat-icon> Редактировать
+      </button>
+      <button mat-raised-button color="warn" (click)="deleteTask()" *ngIf="task">
+        <mat-icon>delete</mat-icon> Удалить
+      </button>
+      <button mat-button routerLink="/tasks">
+        <mat-icon>arrow_back</mat-icon> К списку задач
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Загрузка данных...</p>
+  </div>
+
+  <mat-card *ngIf="!isLoading && task">
+    <mat-card-content>
+      <div class="task-header">
+        <h2>{{ task?.title }}</h2>
+        <span [ngClass]="getDifficultyClass(task?.difficulty || '')" class="difficulty-badge">
+          {{ getDifficultyLabel(task?.difficulty || '') }}
+        </span>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="task-section">
+        <h3>Описание</h3>
+        <p>{{ task?.description }}</p>
+      </div>
+
+      <div class="task-section">
+        <h3>Пример входных данных</h3>
+        <pre>{{ task?.inputExample }}</pre>
+      </div>
+
+      <div class="task-section">
+        <h3>Пример выходных данных</h3>
+        <pre>{{ task?.outputExample }}</pre>
+      </div>
+
+      <div class="task-section" *ngIf="tags.length > 0">
+        <h3>Теги</h3>
+        <div class="tags-container">
+          <mat-chip-set>
+            <mat-chip *ngFor="let tag of tags">{{ tag.name }}</mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div *ngIf="!isLoading && !task" class="not-found">
+    <p>Задача не найдена</p>
+    <button mat-raised-button color="primary" routerLink="/tasks">Вернуться к списку задач</button>
+  </div>
+</div>

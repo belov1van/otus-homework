@@ -1,0 +1,68 @@
+<div class="task-list-container">
+  <div class="header">
+    <h1>Управление задачами</h1>
+    <button mat-raised-button color="primary" routerLink="/tasks/new">
+      <mat-icon>add</mat-icon> Добавить задачу
+    </button>
+  </div>
+
+  <mat-card>
+    <mat-card-content>
+      <div *ngIf="isLoading" class="loading-spinner">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+
+      <div *ngIf="!isLoading && tasks.length === 0" class="no-data">
+        <p>Нет доступных задач. Создайте новую задачу.</p>
+      </div>
+
+      <table mat-table [dataSource]="tasks" *ngIf="!isLoading && tasks.length > 0" class="task-table">
+        <!-- ID Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let task">{{ task.id }}</td>
+        </ng-container>
+
+        <!-- Title Column -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef>Название</th>
+          <td mat-cell *matCellDef="let task">{{ task.title }}</td>
+        </ng-container>
+
+        <!-- Difficulty Column -->
+        <ng-container matColumnDef="difficulty">
+          <th mat-header-cell *matHeaderCellDef>Сложность</th>
+          <td mat-cell *matCellDef="let task">
+            <span [ngClass]="{
+              'difficulty-easy': task.difficulty === 'easy',
+              'difficulty-medium': task.difficulty === 'medium',
+              'difficulty-hard': task.difficulty === 'hard'
+            }">
+              {{ task.difficulty === 'easy' ? 'Легкая' : 
+                 task.difficulty === 'medium' ? 'Средняя' : 'Сложная' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Действия</th>
+          <td mat-cell *matCellDef="let task">
+            <button mat-icon-button [routerLink]="['/tasks', task.id]" matTooltip="Просмотр">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button [routerLink]="['/tasks', task.id, 'edit']" matTooltip="Редактировать">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="deleteTask(task.id!)" matTooltip="Удалить">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

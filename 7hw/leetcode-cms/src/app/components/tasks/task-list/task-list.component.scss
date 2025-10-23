@@ -1,0 +1,41 @@
+.task-list-container {
+  padding: 20px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+  }
+
+  .task-table {
+    width: 100%;
+  }
+
+  .difficulty-easy {
+    color: green;
+    font-weight: 500;
+  }
+
+  .difficulty-medium {
+    color: orange;
+    font-weight: 500;
+  }
+
+  .difficulty-hard {
+    color: red;
+    font-weight: 500;
+  }
+}
