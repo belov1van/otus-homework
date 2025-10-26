@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '../../types';
 import { usersApi } from '../../api/api';
+import { toast } from 'react-toastify';
 
 const UsersList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [newRating, setNewRating] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -23,6 +26,31 @@ const UsersList: React.FC = () => {
 
     fetchUsers();
   }, []);
+  
+  const handleEditRating = (user: User) => {
+    setEditingUserId(user.id);
+    setNewRating(user.rating);
+  };
+  
+  const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewRating(Number(e.target.value));
+  };
+  
+  const saveRating = async (userId: string) => {
+    try {
+      const response = await usersApi.updateRating(userId, newRating);
+      setUsers(users.map(user => user.id === userId ? response.data : user));
+      setEditingUserId(null);
+      toast.success('Рейтинг успешно обновлен');
+    } catch (err) {
+      toast.error('Не удалось обновить рейтинг');
+      console.error(err);
+    }
+  };
+  
+  const cancelEditing = () => {
+    setEditingUserId(null);
+  };
 
   if (loading) {
     return (
@@ -58,7 +86,42 @@ const UsersList: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
                     <span className="block text-sm text-gray-500">Рейтинг</span>
-                    <span className="font-medium">{user.rating}</span>
+                    {editingUserId === user.id ? (
+                      <div className="flex items-center mt-1">
+                        <input
+                          type="number"
+                          value={newRating}
+                          onChange={handleRatingChange}
+                          min="0"
+                          max="5000"
+                          className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="ml-2 space-x-1">
+                          <button
+                            onClick={() => saveRating(user.id)}
+                            className="px-2 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600"
+                          >
+                            ✓
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-md hover:bg-gray-300"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <span className="font-medium">{user.rating}</span>
+                        <button
+                          onClick={() => handleEditRating(user)}
+                          className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md hover:bg-blue-200"
+                        >
+                          ✎
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="block text-sm text-gray-500">Решено задач</span>

@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Problem } from '../../types';
-import { problemsApi } from '../../api/api';
+import { Problem, Tag } from '../../types';
+import { problemsApi, tagsApi } from '../../api/api';
+import { toast } from 'react-toastify';
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [editingProblemId, setEditingProblemId] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string>('');
 
   useEffect(() => {
-    const fetchProblems = async () => {
+    const fetchData = async () => {
       try {
-        const response = await problemsApi.getAll();
-        setProblems(response.data);
+        const [problemsResponse, tagsResponse] = await Promise.all([
+          problemsApi.getAll(),
+          tagsApi.getAll()
+        ]);
+        setProblems(problemsResponse.data);
+        setTags(tagsResponse.data);
       } catch (err) {
-        setError('Не удалось загрузить список задач');
+        setError('Не удалось загрузить данные');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProblems();
+    fetchData();
   }, []);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -32,11 +40,76 @@ const ProblemsList: React.FC = () => {
       try {
         await problemsApi.delete(id);
         setProblems(prev => prev.filter(problem => problem.id !== id));
+        toast.success('Задача успешно удалена');
       } catch (err) {
         setError('Не удалось удалить задачу');
         console.error(err);
+        toast.error('Не удалось удалить задачу');
       }
     }
+  };
+
+  const handleEditTags = (problemId: string) => {
+    setEditingProblemId(problemId);
+    setSelectedTag('');
+  };
+
+  const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTag(e.target.value);
+  };
+
+  const handleAddTag = async (problemId: string) => {
+    if (!selectedTag) return;
+    
+    try {
+      const problem = problems.find(p => p.id === problemId);
+      if (!problem) return;
+      
+      // Проверяем, есть ли уже такой тег у задачи
+      if (problem.tags.includes(selectedTag)) {
+        toast.info('Этот тег уже добавлен к задаче');
+        return;
+      }
+      
+      const updatedTags = [...problem.tags, selectedTag];
+      await problemsApi.update(problemId, { tags: updatedTags });
+      
+      // Обновляем локальное состояние
+      setProblems(prev => prev.map(p => 
+        p.id === problemId ? { ...p, tags: updatedTags } : p
+      ));
+      
+      toast.success('Тег успешно добавлен');
+      setSelectedTag('');
+    } catch (err) {
+      console.error(err);
+      toast.error('Не удалось добавить тег');
+    }
+  };
+
+  const handleRemoveTag = async (problemId: string, tagToRemove: string) => {
+    try {
+      const problem = problems.find(p => p.id === problemId);
+      if (!problem) return;
+      
+      const updatedTags = problem.tags.filter(tag => tag !== tagToRemove);
+      await problemsApi.update(problemId, { tags: updatedTags });
+      
+      // Обновляем локальное состояние
+      setProblems(prev => prev.map(p => 
+        p.id === problemId ? { ...p, tags: updatedTags } : p
+      ));
+      
+      toast.success('Тег успешно удален');
+    } catch (err) {
+      console.error(err);
+      toast.error('Не удалось удалить тег');
+    }
+  };
+
+  const handleCancelEditTags = () => {
+    setEditingProblemId(null);
+    setSelectedTag('');
   };
 
   if (loading) {
@@ -105,13 +178,62 @@ const ProblemsList: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {problem.tags.map((tag, index) => (
-                        <span key={index} className="px-2 py-1 text-xs bg-gray-100 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                    {editingProblemId === problem.id ? (
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {problem.tags.map((tag, index) => (
+                            <div key={index} className="flex items-center px-2 py-1 text-xs bg-gray-100 rounded">
+                              <span>{tag}</span>
+                              <button 
+                                onClick={() => handleRemoveTag(problem.id, tag)}
+                                className="ml-1 text-red-500 hover:text-red-700"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value={selectedTag}
+                            onChange={handleTagChange}
+                            className="text-sm border rounded p-1"
+                          >
+                            <option value="">Выберите тег</option>
+                            {tags.map(tag => (
+                              <option key={tag.id} value={tag.name}>{tag.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleAddTag(problem.id)}
+                            disabled={!selectedTag}
+                            className="px-2 py-1 text-xs bg-green-500 text-white rounded disabled:bg-gray-300"
+                          >
+                            Добавить
+                          </button>
+                          <button
+                            onClick={handleCancelEditTags}
+                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded"
+                          >
+                            Отмена
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {problem.tags.map((tag, index) => (
+                          <span key={index} className="px-2 py-1 text-xs bg-gray-100 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                        <button
+                          onClick={() => handleEditTags(problem.id)}
+                          className="ml-2 text-xs text-blue-500 hover:text-blue-700"
+                        >
+                          Изменить
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
