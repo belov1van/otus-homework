@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -30,6 +31,12 @@ export class UserListComponent implements OnInit {
   displayedColumns: string[] = ['id', 'username', 'email', 'role', 'actions'];
   isLoading = true;
 
+  private readonly roleLabels: { [key: string]: string } = {
+    'admin': 'Администратор',
+    'moderator': 'Модератор',
+    'user': 'Пользователь'
+  };
+
   constructor(private userService: UserService) {}
 
   ngOnInit(): void {
@@ -38,7 +45,9 @@ export class UserListComponent implements OnInit {
 
   loadUsers(): void {
     this.isLoading = true;
-    this.userService.getUsers().subscribe({
+    this.userService.getUsers().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (users) => {
         this.users = users;
         this.isLoading = false;
@@ -51,15 +60,6 @@ export class UserListComponent implements OnInit {
   }
 
   getRoleLabel(role: string): string {
-    switch (role) {
-      case 'admin':
-        return 'Администратор';
-      case 'moderator':
-        return 'Модератор';
-      case 'user':
-        return 'Пользователь';
-      default:
-        return role;
-    }
+    return this.roleLabels[role] || role;
   }
 }

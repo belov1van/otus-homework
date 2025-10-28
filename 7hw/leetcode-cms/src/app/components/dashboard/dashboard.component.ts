@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -32,6 +33,12 @@ export class DashboardComponent implements OnInit {
   recentTasks: Task[] = [];
   isLoading = true;
 
+  private readonly difficultyLabels: { [key: string]: string } = {
+    'easy': 'Легкая',
+    'medium': 'Средняя',
+    'hard': 'Сложная'
+  };
+
   constructor(
     private taskService: TaskService,
     private tagService: TagService,
@@ -46,7 +53,9 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     
     // Загрузка количества задач и последних задач
-    this.taskService.getTasks().subscribe({
+    this.taskService.getTasks().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (tasks) => {
         this.taskCount = tasks.length;
         this.recentTasks = tasks.slice(0, 5); // Получаем последние 5 задач
@@ -59,7 +68,9 @@ export class DashboardComponent implements OnInit {
     });
 
     // Загрузка количества тегов
-    this.tagService.getTags().subscribe({
+    this.tagService.getTags().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (tags) => {
         this.tagCount = tags.length;
         this.checkLoadingComplete();
@@ -71,7 +82,9 @@ export class DashboardComponent implements OnInit {
     });
 
     // Загрузка количества пользователей
-    this.userService.getUsers().subscribe({
+    this.userService.getUsers().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (users) => {
         this.userCount = users.length;
         this.checkLoadingComplete();
@@ -91,12 +104,7 @@ export class DashboardComponent implements OnInit {
   }
 
   getDifficultyLabel(difficulty: string): string {
-    switch (difficulty) {
-      case 'easy': return 'Легкая';
-      case 'medium': return 'Средняя';
-      case 'hard': return 'Сложная';
-      default: return difficulty;
-    }
+    return this.difficultyLabels[difficulty] || difficulty;
   }
 
   getDifficultyClass(difficulty: string): string {

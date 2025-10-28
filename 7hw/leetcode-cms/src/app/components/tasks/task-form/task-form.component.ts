@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -54,7 +55,9 @@ export class TaskFormComponent implements OnInit {
     this.loadTags();
     
     // Проверяем, находимся ли мы в режиме редактирования
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(
+      takeUntilDestroyed()
+    ).subscribe(params => {
       const id = params.get('id');
       if (id) {
         this.isEditMode = true;
@@ -76,7 +79,9 @@ export class TaskFormComponent implements OnInit {
   }
 
   loadTags(): void {
-    this.tagService.getTags().subscribe({
+    this.tagService.getTags().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (tags) => {
         this.tags = tags;
       },
@@ -88,7 +93,9 @@ export class TaskFormComponent implements OnInit {
 
   loadTask(id: number): void {
     this.isLoading = true;
-    this.taskService.getTask(id).subscribe({
+    this.taskService.getTask(id).pipe(
+      takeUntilDestroyed()
+    ).subscribe({
       next: (task) => {
         if (task) {
           this.taskForm.patchValue({
@@ -121,7 +128,9 @@ export class TaskFormComponent implements OnInit {
     if (this.isEditMode && this.taskId) {
       // Обновление существующей задачи
       taskData.id = this.taskId;
-      this.taskService.updateTask(taskData).subscribe({
+      this.taskService.updateTask(taskData).pipe(
+        takeUntilDestroyed()
+      ).subscribe({
         next: () => {
           this.router.navigate(['/tasks']);
         },
@@ -131,7 +140,9 @@ export class TaskFormComponent implements OnInit {
       });
     } else {
       // Создание новой задачи
-      this.taskService.createTask(taskData).subscribe({
+      this.taskService.createTask(taskData).pipe(
+        takeUntilDestroyed()
+      ).subscribe({
         next: () => {
           this.router.navigate(['/tasks']);
         },

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -36,34 +37,52 @@ export class TaskListComponent implements OnInit {
 
   constructor(private taskService: TaskService) {}
 
+  private readonly difficultyLabels: { [key: string]: string } = {
+    'easy': 'Легкая',
+    'medium': 'Средняя',
+    'hard': 'Сложная'
+  };
+
   ngOnInit(): void {
     this.loadTasks();
   }
 
   loadTasks(): void {
     this.isLoading = true;
-    this.taskService.getTasks().subscribe({
-      next: (tasks) => {
-        this.tasks = tasks;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading tasks', error);
-        this.isLoading = false;
-      }
-    });
+    this.taskService.getTasks()
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (tasks) => {
+          this.tasks = tasks;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error loading tasks', error);
+          this.isLoading = false;
+        }
+      });
   }
 
   deleteTask(id: number): void {
     if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-      this.taskService.deleteTask(id).subscribe({
-        next: () => {
-          this.tasks = this.tasks.filter(task => task.id !== id);
-        },
-        error: (error) => {
-          console.error('Error deleting task', error);
-        }
-      });
+      this.taskService.deleteTask(id)
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: () => {
+            this.tasks = this.tasks.filter(task => task.id !== id);
+          },
+          error: (error) => {
+            console.error('Error deleting task', error);
+          }
+        });
     }
+  }
+
+  getDifficultyLabel(difficulty: string): string {
+    return this.difficultyLabels[difficulty] || difficulty;
+  }
+
+  getDifficultyClass(difficulty: string): string {
+    return `difficulty-${difficulty}`;
   }
 }

@@ -8,18 +8,22 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Название задачи</mat-label>
           <input matInput formControlName="title" placeholder="Введите название задачи">
-          <mat-error *ngIf="submitAttempted && taskForm.get('title')?.invalid">
-            {{ getErrorMessage('title') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('title').invalid) {
+            <mat-error>
+              {{ getErrorMessage('title') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Описание задачи -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Описание задачи</mat-label>
           <textarea matInput formControlName="description" rows="5" placeholder="Введите описание задачи"></textarea>
-          <mat-error *ngIf="submitAttempted && taskForm.get('description')?.invalid">
-            {{ getErrorMessage('description') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('description').invalid) {
+            <mat-error>
+              {{ getErrorMessage('description') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Сложность -->
@@ -30,38 +34,48 @@
             <mat-option value="medium">Средняя</mat-option>
             <mat-option value="hard">Сложная</mat-option>
           </mat-select>
-          <mat-error *ngIf="submitAttempted && taskForm.get('difficulty')?.invalid">
-            {{ getErrorMessage('difficulty') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('difficulty').invalid) {
+            <mat-error>
+              {{ getErrorMessage('difficulty') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Пример входных данных -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Пример входных данных</mat-label>
           <textarea matInput formControlName="inputExample" rows="3" placeholder="Введите пример входных данных"></textarea>
-          <mat-error *ngIf="submitAttempted && taskForm.get('inputExample')?.invalid">
-            {{ getErrorMessage('inputExample') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('inputExample').invalid) {
+            <mat-error>
+              {{ getErrorMessage('inputExample') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Пример выходных данных -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Пример выходных данных</mat-label>
           <textarea matInput formControlName="outputExample" rows="3" placeholder="Введите пример выходных данных"></textarea>
-          <mat-error *ngIf="submitAttempted && taskForm.get('outputExample')?.invalid">
-            {{ getErrorMessage('outputExample') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('outputExample').invalid) {
+            <mat-error>
+              {{ getErrorMessage('outputExample') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Теги -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Теги</mat-label>
           <mat-select formControlName="tags" multiple>
-            <mat-option *ngFor="let tag of tags" [value]="tag.id">{{ tag.name }}</mat-option>
+            @for (tag of tags; track tag.id) {
+              <mat-option [value]="tag.id">{{ tag.name }}</mat-option>
+            }
           </mat-select>
-          <mat-error *ngIf="submitAttempted && taskForm.get('tags')?.invalid">
-            {{ getErrorMessage('tags') }}
-          </mat-error>
+          @if (submitAttempted && taskForm.get('tags').invalid) {
+            <mat-error>
+              {{ getErrorMessage('tags') }}
+            </mat-error>
+          }
         </mat-form-field>
 
         <!-- Кнопки действий -->
