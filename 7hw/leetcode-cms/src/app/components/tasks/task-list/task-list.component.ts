@@ -52,17 +52,25 @@ export class TaskListComponent implements OnInit {
     this.taskService.getTasks()
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: (tasks) => {
+        next: (tasks: Task[]) => {
           this.tasks = tasks;
           this.isLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error loading tasks', error);
           this.isLoading = false;
         }
       });
   }
-
+  
+  getDifficultyLabel(difficulty: string): string {
+    return this.difficultyLabels[difficulty] || difficulty;
+  }
+  
+  getDifficultyClass(difficulty: string): string {
+    return `difficulty-${difficulty}`;
+  }
+  
   deleteTask(id: number): void {
     if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
       this.taskService.deleteTask(id)
@@ -71,18 +79,12 @@ export class TaskListComponent implements OnInit {
           next: () => {
             this.tasks = this.tasks.filter(task => task.id !== id);
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Error deleting task', error);
           }
         });
     }
   }
 
-  getDifficultyLabel(difficulty: string): string {
-    return this.difficultyLabels[difficulty] || difficulty;
-  }
 
-  getDifficultyClass(difficulty: string): string {
-    return `difficulty-${difficulty}`;
-  }
 }

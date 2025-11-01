@@ -1,35 +1,43 @@
 <div class="tag-form-container">
   <h1>{{ isEditMode ? 'Редактирование тега' : 'Создание нового тега' }}</h1>
 
-  <div *ngIf="isLoading" class="loading">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Загрузка данных...</p>
-  </div>
+  @if (isLoading) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Загрузка данных...</p>
+    </div>
+  }
 
-  <mat-card *ngIf="!isLoading">
-    <mat-card-content>
-      <form [formGroup]="tagForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Название</mat-label>
-          <input matInput formControlName="name" placeholder="Введите название тега">
-          <mat-error *ngIf="submitAttempted && tagForm.get('name')?.invalid">
-            {{ getErrorMessage('name') }}
-          </mat-error>
+  @if (!isLoading) {
+    <mat-card>
+      <mat-card-content>
+        <form [formGroup]="tagForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Название</mat-label>
+            <input matInput formControlName="name" placeholder="Введите название тега">
+            @if (submitAttempted && tagForm.get('name')?.invalid) {
+              <mat-error>
+                {{ getErrorMessage('name') }}
+              </mat-error>
+            }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Описание</mat-label>
           <textarea matInput formControlName="description" placeholder="Введите описание тега" rows="4"></textarea>
-          <mat-error *ngIf="submitAttempted && tagForm.get('description')?.invalid">
-            {{ getErrorMessage('description') }}
-          </mat-error>
-        </mat-form-field>
+          @if (submitAttempted && tagForm.get('description')?.invalid) {
+              <mat-error>
+                {{ getErrorMessage('description') }}
+              </mat-error>
+            }
+          </mat-form-field>
 
-        <div class="form-actions">
-          <button mat-button type="button" routerLink="/tags">Отмена</button>
-          <button mat-raised-button color="primary" type="submit">{{ isEditMode ? 'Обновить' : 'Создать' }}</button>
-        </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
+          <div class="form-actions">
+            <button mat-button type="button" routerLink="/tags">Отмена</button>
+            <button mat-raised-button color="primary" type="submit">{{ isEditMode ? 'Обновить' : 'Создать' }}</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
 </div>

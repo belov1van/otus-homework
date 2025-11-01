@@ -31,11 +31,11 @@ export class UserListComponent implements OnInit {
   displayedColumns: string[] = ['id', 'username', 'email', 'role', 'actions'];
   isLoading = true;
 
-  private readonly roleLabels: { [key: string]: string } = {
-    'admin': 'Администратор',
-    'moderator': 'Модератор',
-    'user': 'Пользователь'
-  };
+  private readonly roleLabels = new Map<string, string>([
+    ['admin', 'Администратор'],
+    ['moderator', 'Модератор'],
+    ['user', 'Пользователь']
+  ]);
 
   constructor(private userService: UserService) {}
 
@@ -60,6 +60,6 @@ export class UserListComponent implements OnInit {
   }
 
   getRoleLabel(role: string): string {
-    return this.roleLabels[role] || role;
+    return this.roleLabels.get(role) || role;
   }
 }

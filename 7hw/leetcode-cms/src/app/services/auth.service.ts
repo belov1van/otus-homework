@@ -1,18 +1,21 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { Injectable, PLATFORM_ID, Inject, signal, computed } from '@angular/core';
+import { Observable, of, throwError } from 'rxjs';
 import { User } from '../models/user';
 import { Router } from '@angular/router';
-import { tap, delay, catchError } from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  public currentUser$ = this.currentUserSubject.asObservable();
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private currentUserSignal = signal<User | null>(null);
+  public currentUser = this.currentUserSignal.asReadonly();
+  public currentUser$ = computed(() => this.currentUser());
+  
+  private isAuthenticatedSignal = signal<boolean>(false);
+  public isAuthenticated = this.isAuthenticatedSignal.asReadonly();
+  public isAuthenticated$ = computed(() => this.isAuthenticated());
   private isBrowser: boolean;
 
   // Mock users for demonstration
@@ -29,14 +32,14 @@ export class AuthService {
     
     // Initialize authentication state only in browser environment
     if (this.isBrowser) {
-      this.isAuthenticatedSubject.next(this.hasToken());
+      this.isAuthenticatedSignal.set(this.hasToken());
       
       // Check if user is already logged in from localStorage
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        this.currentUserSubject.next(user);
-        this.isAuthenticatedSubject.next(true);
+        this.currentUserSignal.set(user);
+        this.isAuthenticatedSignal.set(true);
       }
     }
   }
@@ -50,8 +53,8 @@ export class AuthService {
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('token', 'mock-jwt-token');
       }
-      this.currentUserSubject.next(user);
-      this.isAuthenticatedSubject.next(true);
+      this.currentUserSignal.set(user);
+      this.isAuthenticatedSignal.set(true);
       return of(user).pipe(delay(500)); // Simulate API delay
     } else {
       return throwError(() => new Error('Username or password is incorrect'));
@@ -63,13 +66,13 @@ export class AuthService {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('token');
     }
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
+    this.currentUserSignal.set(null);
+    this.isAuthenticatedSignal.set(false);
     this.router.navigate(['/login']);
   }
 
   getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
+    return this.currentUserSignal();
   }
 
   isAdmin(): boolean {

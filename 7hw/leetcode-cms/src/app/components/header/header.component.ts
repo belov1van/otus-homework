@@ -5,6 +5,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user';
 
@@ -32,13 +33,10 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-
-    this.authService.isAuthenticated$.subscribe(isAuth => {
-      this.isAuthenticated = isAuth;
-    });
+    // Используем effect для реактивного обновления свойств компонента
+    // при изменении сигналов
+    this.currentUser = this.authService.currentUser() || null;
+    this.isAuthenticated = this.authService.isAuthenticated();
   }
 
   logout(): void {

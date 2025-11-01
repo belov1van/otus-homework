@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { MatIconModule } from '@angular/material/icon';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-sidebar',
@@ -114,12 +116,9 @@ export class SidebarComponent implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.authService.isAuthenticated$.subscribe(isAuth => {
-      this.isAuthenticated = isAuth;
-    });
-
-    this.authService.currentUser$.subscribe(user => {
-      this.isAdmin = !!user && user.role === 'admin';
-    });
+    // Используем сигналы напрямую
+    this.isAuthenticated = this.authService.isAuthenticated();
+    const user = this.authService.currentUser();
+    this.isAdmin = !!user && user.role === 'admin';
   }
 }
