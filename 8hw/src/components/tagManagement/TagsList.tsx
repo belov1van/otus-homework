@@ -3,7 +3,7 @@ import { Tag } from '../../types';
 import { tagsApi } from '../../api/api';
 import TagForm from './TagForm';
 
-const TagsList: React.FC = () => {
+const TagsList: React.FC<{ initialTags?: Tag[] }> = ({ initialTags }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -24,8 +24,13 @@ const TagsList: React.FC = () => {
   };
 
   useEffect(() => {
+    if (initialTags && initialTags.length > 0) {
+      setTags(initialTags);
+      setLoading(false);
+      return;
+    }
     fetchTags();
-  }, []);
+  }, [initialTags]);
 
   const handleDeleteTag = async (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить этот тег?')) {

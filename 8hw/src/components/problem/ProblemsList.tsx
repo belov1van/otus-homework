@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Problem, Tag } from '../../types';
 import { problemsApi, tagsApi } from '../../api/api';
 import { toast } from 'react-toastify';
 
-const ProblemsList: React.FC = () => {
+const ProblemsList: React.FC<{ initialProblems?: Problem[]; initialTags?: Tag[] }> = ({ initialProblems, initialTags }) => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -13,6 +13,13 @@ const ProblemsList: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string>('');
 
   useEffect(() => {
+    if (initialProblems && initialTags) {
+      setProblems(initialProblems);
+      setTags(initialTags);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const [problemsResponse, tagsResponse] = await Promise.all([
@@ -30,7 +37,7 @@ const ProblemsList: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [initialProblems, initialTags]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -133,7 +140,7 @@ const ProblemsList: React.FC = () => {
       <div className="p-6 border-b flex justify-between items-center">
         <h2 className="text-xl font-semibold">Задачи</h2>
         <Link
-          to="/problems/new"
+          href="/problems/new"
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
         >
           Добавить задачу
@@ -163,7 +170,7 @@ const ProblemsList: React.FC = () => {
               problems.map(problem => (
                 <tr key={problem.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Link to={`/problems/${problem.id}`} className="text-blue-600 hover:text-blue-900">
+                    <Link href={`/problems/${problem.id}`} className="text-blue-600 hover:text-blue-900">
                       {problem.title}
                     </Link>
                   </td>

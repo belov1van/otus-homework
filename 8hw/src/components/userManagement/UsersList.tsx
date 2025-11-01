@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { User } from '../../types';
 import { usersApi } from '../../api/api';
 import { toast } from 'react-toastify';
 
-const UsersList: React.FC = () => {
+const UsersList: React.FC<{ initialUsers?: User[] }> = ({ initialUsers }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -12,6 +12,11 @@ const UsersList: React.FC = () => {
   const [newRating, setNewRating] = useState<number>(0);
 
   useEffect(() => {
+    if (initialUsers && initialUsers.length > 0) {
+      setUsers(initialUsers);
+      setLoading(false);
+      return;
+    }
     const fetchUsers = async () => {
       try {
         const response = await usersApi.getAll();
@@ -25,7 +30,7 @@ const UsersList: React.FC = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [initialUsers]);
   
   const handleEditRating = (user: User) => {
     setEditingUserId(user.id);
@@ -78,7 +83,7 @@ const UsersList: React.FC = () => {
         {users.length > 0 ? (
           users.map(user => (
             <div key={user.id} className="p-4 hover:bg-gray-50">
-              <Link to={`/users/${user.id}`} className="flex justify-between items-center">
+              <Link href={`/users/${user.id}`} className="flex justify-between items-center">
                 <div>
                   <h3 className="font-medium text-blue-600">{user.username}</h3>
                   <p className="text-sm text-gray-500">{user.email}</p>

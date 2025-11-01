@@ -3,7 +3,7 @@ import { Category } from '../../types';
 import { categoriesApi } from '../../api/api';
 import CategoryForm from './CategoryForm';
 
-const CategoriesList: React.FC = () => {
+const CategoriesList: React.FC<{ initialCategories?: Category[] }> = ({ initialCategories }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -24,8 +24,13 @@ const CategoriesList: React.FC = () => {
   };
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) {
+      setCategories(initialCategories);
+      setLoading(false);
+      return;
+    }
     fetchCategories();
-  }, []);
+  }, [initialCategories]);
 
   const handleDeleteCategory = async (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить эту категорию?')) {
